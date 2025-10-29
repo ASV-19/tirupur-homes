@@ -1,6 +1,7 @@
 # app/models/property.py
-from sqlalchemy import Column, Integer, String, Text, Boolean, Numeric, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, Boolean, Numeric, DateTime, ForeignKey, Enum, Float
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql import func
 import enum
 from ..database import Base
@@ -32,6 +33,10 @@ class Property(Base):
     city = Column(String(100), default="Tirupur", index=True)
     state = Column(String(100), default="Tamil Nadu")
     zip_code = Column(String(10))
+
+    # Coordinates (for maps)
+    latitude = Column(Float, nullable=True)
+    longitude = Column(Float, nullable=True)  
     
     # Details
     bedrooms = Column(Integer, default=1)
@@ -56,6 +61,20 @@ class Property(Base):
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    @hybrid_property
+    def gmap_url(self):
+        """Generate a Google Maps location link for this property."""
+        if self.latitude and self.longitude:
+            return f"https://www.google.com/maps?q={self.latitude},{self.longitude}"
+        return None
+
+    @hybrid_property
+    def directions_url(self):
+        """Generate a directions link (user → property). The user's origin is to be filled client-side."""
+        if self.latitude and self.longitude:
+            return f"https://www.google.com/maps/dir/?api=1&destination={self.latitude},{self.longitude}"
+        return None    
 
 class PropertyImage(Base):
     __tablename__ = "property_images"

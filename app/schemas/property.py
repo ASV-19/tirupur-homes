@@ -37,6 +37,9 @@ class PropertyBase(BaseModel):
     is_special_offer: bool = False
     offer_text: Optional[str] = None
 
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
 class PropertyCreate(PropertyBase):
     pass
 
@@ -62,7 +65,14 @@ class PropertyResponse(PropertyBase):
     images: List[PropertyImageResponse] = []
     created_at: datetime
     updated_at: Optional[datetime] = None
-    
+
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+
+    # 🗺️ Map links
+    gmap_url: Optional[str] = None
+    directions_url: Optional[str] = None
+
     model_config = ConfigDict(from_attributes=True)
 
 class PropertyListResponse(BaseModel):

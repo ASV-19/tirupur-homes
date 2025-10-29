@@ -63,7 +63,11 @@ def get_property(property_id: int, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Property not found"
         )
-    return db_property
+    return PropertyResponse(
+        **db_property.__dict__,
+        gmap_url=db_property.gmap_url,
+        directions_url=db_property.directions_url
+    )
 
 @router.get("/slug/{slug}", response_model=PropertyResponse)
 def get_property_by_slug(slug: str, db: Session = Depends(get_db)):
@@ -74,7 +78,11 @@ def get_property_by_slug(slug: str, db: Session = Depends(get_db)):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Property not found"
         )
-    return db_property
+    return PropertyResponse(
+        **db_property.__dict__,
+        gmap_url=db_property.gmap_url,
+        directions_url=db_property.directions_url
+    )
 
 @router.post("/", response_model=PropertyResponse, status_code=status.HTTP_201_CREATED)
 def create_property(

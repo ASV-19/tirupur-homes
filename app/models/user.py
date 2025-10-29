@@ -7,7 +7,7 @@ from ..database import Base
 
 class UserRole(str, enum.Enum):
     ADMIN = "ADMIN"
-    AGENT = "AGENT"
+    USER = "USER"
 
 class User(Base):
     __tablename__ = "users"
