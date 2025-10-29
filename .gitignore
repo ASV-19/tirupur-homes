@@ -17,3 +17,11 @@ __pycache__
 venv/
 .development/
 development/
+./frontend/node_modules
+node_modules/
+dist/
+.env
+.env.local
+npm-debug.log
+.vscode/
+.DS_Store

@@ -5,6 +5,7 @@ from typing import List, Optional
 from slugify import slugify
 from ..models.property import Property, PropertyImage, PropertyType, PropertyStatus
 from ..schemas.property import PropertyCreate, PropertyUpdate
+from ..utils.geocode import get_lat_lon_from_address
 
 def get_property(db: Session, property_id: int) -> Optional[Property]:
     return db.query(Property).filter(Property.id == property_id).first()
@@ -65,10 +66,14 @@ def create_property(db: Session, property: PropertyCreate, user_id: int) -> Prop
         slug = f"{base_slug}-{counter}"
         counter += 1
     
+    lat, lon = get_lat_lon_from_address(property.address, property.city)
+
     db_property = Property(
-        **property.model_dump(),
+        **property.model_dump(exclude={"latitude", "longitude"}),
         slug=slug,
-        created_by_id=user_id
+        created_by_id=user_id,
+        latitude=lat,
+        longitude=lon
     )
     db.add(db_property)
     db.commit()
