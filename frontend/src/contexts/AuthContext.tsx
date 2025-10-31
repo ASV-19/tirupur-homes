@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
   id: number;
@@ -14,7 +14,28 @@ interface AuthState {
   isLoading: boolean;
 }
 
+interface AuthContextType extends AuthState {
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  register: (name: string, email: string, password: string, role?: string) => Promise<{ success: boolean; error?: string; user?: any }>;
+  logout: () => void;
+  getAuthHeaders: () => Record<string, string>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
 export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
+
+interface AuthProviderProps {
+  children: ReactNode;
+}
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [authState, setAuthState] = useState<AuthState>({
     user: null,
     token: null,
@@ -37,7 +58,6 @@ export const useAuth = () => {
           isLoading: false,
         });
       } catch (error) {
-        // Invalid stored data, clear it
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setAuthState(prev => ({ ...prev, isLoading: false }));
@@ -68,14 +88,19 @@ export const useAuth = () => {
       const data = await response.json();
       const token = data.access_token;
 
-      // Get user info (you might need to add an endpoint for this)
-      // For now, we'll decode from token or use a placeholder
-      const user = {
-        id: 1,
-        email: email,
-        name: email.split('@')[0],
-        role: 'ADMIN',
-      };
+      // Fetch real user data from /me endpoint
+      const userResponse = await fetch('/api/v1/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!userResponse.ok) {
+        throw new Error('Failed to fetch user information');
+      }
+
+      const user = await userResponse.json();
 
       // Store in localStorage
       localStorage.setItem('token', token);
@@ -94,6 +119,34 @@ export const useAuth = () => {
     }
   };
 
+  const register = async (name: string, email: string, password: string, role: string = 'USER') => {
+    try {
+      const response = await fetch('/api/v1/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Registration failed');
+      }
+
+      const user = await response.json();
+
+      return { success: true, user };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Registration failed' };
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -105,20 +158,29 @@ export const useAuth = () => {
     });
   };
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
     if (authState.token) {
-      return {
-        'Authorization': `Bearer ${authState.token}`,
-        'Content-Type': 'application/json',
-      };
+      headers['Authorization'] = `Bearer ${authState.token}`;
     }
-    return { 'Content-Type': 'application/json' };
+
+    return headers;
   };
 
-  return {
+  const value: AuthContextType = {
     ...authState,
     login,
+    register,
     logout,
     getAuthHeaders,
   };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

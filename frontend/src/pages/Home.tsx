@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useProperties } from '../hooks/useProperties';
+import LoginSignupModal from '../components/LoginSignupModal';
+import { useAuth } from '../contexts/AuthContext';
 
 const Home = () => {
+  const { isAuthenticated, user } = useAuth();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: featuredProperties, isLoading } = useProperties({
     limit: 6,
     is_featured: true,
@@ -17,12 +22,26 @@ const Home = () => {
         <p className="text-xl text-gray-600 mb-8">
           Find your perfect property in Tirupur, Tamil Nadu
         </p>
-        <Link
-          to="/properties"
-          className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
-        >
-          Browse All Properties
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <Link
+            to="/properties"
+            className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium"
+          >
+            Browse All Properties
+          </Link>
+          {!isAuthenticated ? (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="bg-white text-blue-600 border-2 border-blue-600 px-8 py-3 rounded-lg hover:bg-blue-50 transition-colors text-lg font-medium"
+            >
+              Sign In / Sign Up
+            </button>
+          ) : (
+            <div className="text-lg text-gray-700">
+              Welcome back, {user?.name}!
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Featured Properties */}
@@ -107,6 +126,11 @@ const Home = () => {
           </a>
         </div>
       </div>
+
+      <LoginSignupModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

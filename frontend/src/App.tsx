@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Properties from './pages/Properties.tsx';
 import PropertyDetail from './pages/PropertyDetail.tsx';
@@ -11,18 +12,20 @@ import { queryClient } from './lib/api';
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          {/* Admin routes (no layout) */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<Admin />} />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Admin routes (no layout) */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/admin" element={<Admin />} />
 
-          {/* Public routes (with layout) */}
-          <Route path="/" element={<Layout><Home /></Layout>} />
-          <Route path="/properties" element={<Layout><Properties /></Layout>} />
-          <Route path="/properties/:slug" element={<Layout><PropertyDetail /></Layout>} />
-        </Routes>
-      </Router>
+            {/* Public routes (with layout) */}
+            <Route path="/" element={<Layout><Home /></Layout>} />
+            <Route path="/properties" element={<Layout><Properties /></Layout>} />
+            <Route path="/properties/:slug" element={<Layout><PropertyDetail /></Layout>} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
