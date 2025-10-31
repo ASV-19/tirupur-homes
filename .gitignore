@@ -25,3 +25,8 @@ dist/
 npm-debug.log
 .vscode/
 .DS_Store
+./development/*
+pyvenv.cfg
+Pipfile.lock
+poetry.lock
+.python-version
