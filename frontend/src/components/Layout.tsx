@@ -1,14 +1,16 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../contexts/AuthContext';
+import LoginSignupModal from './LoginSignupModal';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const location = useLocation();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,7 +22,7 @@ const Layout = ({ children }: LayoutProps) => {
                 Tirupur Homes
               </Link>
             </div>
-            <nav className="flex space-x-8">
+            <nav className="flex items-center space-x-8">
               <Link
                 to="/"
                 className={`${
@@ -44,21 +46,37 @@ const Layout = ({ children }: LayoutProps) => {
                 Contact
               </a>
               {isAuthenticated ? (
-                <Link
-                  to="/admin"
-                  className={`${
-                    location.pathname.startsWith('/admin') ? 'text-blue-600' : 'text-gray-700'
-                  } hover:text-gray-900 transition-colors`}
-                >
-                  Admin
-                </Link>
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-700">
+                    Welcome, {user?.name}
+                  </span>
+                  {user?.role === 'ADMIN' && (
+                    <Link
+                      to="/admin"
+                      className={`${
+                        location.pathname.startsWith('/admin') ? 'text-blue-600' : 'text-gray-700'
+                      } hover:text-gray-900 transition-colors`}
+                    >
+                      Admin Panel
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      logout();
+                      window.location.reload();
+                    }}
+                    className="text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    Logout
+                  </button>
+                </div>
               ) : (
-                <Link
-                  to="/login"
+                <button
+                  onClick={() => setIsModalOpen(true)}
                   className="text-gray-700 hover:text-gray-900 transition-colors"
                 >
-                  Admin Login
-                </Link>
+                  Sign In / Sign Up
+                </button>
               )}
             </nav>
           </div>
@@ -76,6 +94,11 @@ const Layout = ({ children }: LayoutProps) => {
           </p>
         </div>
       </footer>
+
+      <LoginSignupModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

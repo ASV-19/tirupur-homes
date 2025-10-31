@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { api, queryKeys, Property } from '../lib/api';
+import { api, queryKeys } from '../lib/api';
 
 export const useProperties = (params?: {
   skip?: number;
